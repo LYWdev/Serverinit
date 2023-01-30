@@ -23,3 +23,10 @@ sudo chmod a+r /etc/apt/keyrings/docker.gpg
 sudo apt-get update
 
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+
+# 4. docker start on boot auto// version check
+systemctl enable docekr 
+systemctl start docekr 
+
+docker version
