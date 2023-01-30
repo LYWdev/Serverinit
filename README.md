@@ -1,1 +1,2 @@
-# Serverinit
+# Server init
+# Server init script
