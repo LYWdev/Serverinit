@@ -96,14 +96,14 @@ do
     ssh root@${srv} "iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT"
 
     # allow http, https
-    #ssh root@${srv} "iptables -A INPUT -p tcp -m multiport --dports 80,9898,443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
-    #ssh root@${srv} "iptables -A OUTPUT -p tcp -m multiport --dports 80,9898,443 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
+    ssh root@${srv} "iptables -A INPUT -p tcp -m multiport --dports 80,9898,443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
+    ssh root@${srv} "iptables -A OUTPUT -p tcp -m multiport --dports 80,9898,443 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
     ssh root@${srv} "iptables -A INPUT -p tcp -m multiport --dports 9898,443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
     ssh root@${srv} "iptables -A OUTPUT -p tcp -m multiport --dports 9898,443 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
 
     # allow ssh
-    #ssh root@${srv} "iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
-    #ssh root@${srv} "iptables -A OUTPUT -p tcp --sport 22 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
+    ssh root@${srv} "iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
+    ssh root@${srv} "iptables -A OUTPUT -p tcp --sport 22 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
 
     # allow elasticsearch
     #ssh root@${srv} "iptables -A INPUT -p tcp --dport 9200 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
