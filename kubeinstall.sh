@@ -16,6 +16,14 @@ echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https:/
 #저장소 업데이트 후 kubelet, kubeadm, kubectl 설치를 순차적으로 진행한다. 
 
 sudo apt-get update
+# 아래 명령어는 퍼블릭키 인증문제, 패키지 업데이트 문제 등으로 사용 X
+# sudo apt-get install -y kubelet kubeadm kubectl
+# sudo apt-mark hold kubelet kubeadm kubectl
+
+# 리눅스에서 curl을 사용하여 kubectl 바이너리 설치
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
