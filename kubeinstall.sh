@@ -31,3 +31,6 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 sudo systemctl daemon-reload
 sudo systemctl restart kubelet
+
+# pubkey에러 발생시, 아래 명령어로 키입력 후 다시 스크립트 실행
+# sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys {pubkey}
