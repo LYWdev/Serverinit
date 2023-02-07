@@ -26,4 +26,5 @@ gsettings set org.gnome.desktop.screensaver lock-enabled false
 echo 'VM Console service enable'
 systemctl enable serial-getty@ttyS0.service
 systemctl start serial-getty@ttyS0.service
-sudo systemctl status serial-getty@ttyS0.service
+
+
