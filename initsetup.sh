@@ -5,6 +5,7 @@ echo 'Installing ssh, vim, wget, zip, unzip, curl nettools'
 sudo apt-get install -y ssh
 sudo apt-get install -y vim
 sudo apt-get install -y wget
+sudo apt-get install -y xrdp
 sudo apt-get install -y zip
 sudo apt-get install -y unzip
 sudo apt-get install -y curl 
