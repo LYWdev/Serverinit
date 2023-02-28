@@ -1,14 +1,14 @@
 #!/bin/bash 
-​
+
 #iptables -F FORWARD && iptables -P FORWARD ACCEPT && iptables -A INPUT -s 5.188.203.0/24 -j DROP && iptables -L
-​
+
 HOSTNAME=$1
-​
+
 if [ -z "$LOGNAME" ]; then
     echo "One or more target server names or IP addresses are needed."
     exit 0
 fi
-​
+
 whitelist=(
             127.0.0.0/16
             172.17.0.0/16 # containers
@@ -66,49 +66,49 @@ whitelist=(
             #121.65.177.136/24 # IT4 building
             8.8.8.8 
           ) 
-​
+
 #myservers=( bespin )
-​
+
 #for srv in "${myservers[@]}"
 for srv # if there is nothing after "for var", bash assumes "in \"$@\""
 do
-​
+
 	echo "Processing " $srv "..."
-​
+
     ssh root@${srv} "iptables -P INPUT ACCEPT"
     ssh root@${srv} "iptables -P FORWARD ACCEPT"
     ssh root@${srv} "iptables -F"
-​
+
     # loop back 
     ssh root@${srv} "iptables -A INPUT -i lo -j ACCEPT"
     ssh root@${srv} "iptables -A OUTPUT -o lo -j ACCEPT"
-​
+
     # dns traffic
     ssh root@${srv} "iptables -A OUTPUT -p udp -o eth0 --dport 53 -j ACCEPT"
     ssh root@${srv} "iptables -A INPUT -p udp -i eth0 --sport 53 -j ACCEPT"
-​
+
     # dhcp traffic
     ssh root@${srv} "iptables -A OUTPUT -p udp -o eth0 --dport 67 -j ACCEPT"
     ssh root@${srv} "iptables -A INPUT -p udp -i eth0 --sport 67 -j ACCEPT"
-​
+
     #  allow established and related incoming connection
     ssh root@${srv} "iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT"
     ssh root@${srv} "iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT"
-​
+
     # allow http, https
-    #ssh root@${srv} "iptables -A INPUT -p tcp -m multiport --dports 80,9898,443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
-    #ssh root@${srv} "iptables -A OUTPUT -p tcp -m multiport --dports 80,9898,443 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
+    ssh root@${srv} "iptables -A INPUT -p tcp -m multiport --dports 80,9898,443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
+    ssh root@${srv} "iptables -A OUTPUT -p tcp -m multiport --dports 80,9898,443 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
     ssh root@${srv} "iptables -A INPUT -p tcp -m multiport --dports 9898,443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
     ssh root@${srv} "iptables -A OUTPUT -p tcp -m multiport --dports 9898,443 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
-​
+
     # allow ssh
-    #ssh root@${srv} "iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
-    #ssh root@${srv} "iptables -A OUTPUT -p tcp --sport 22 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
-​
+    ssh root@${srv} "iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
+    ssh root@${srv} "iptables -A OUTPUT -p tcp --sport 22 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
+
     # allow elasticsearch
     #ssh root@${srv} "iptables -A INPUT -p tcp --dport 9200 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
     #ssh root@${srv} "iptables -A OUTPUT -p tcp --sport 9200 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
-​
+
     for friend in "${whitelist[@]}"
     do
         echo ${srv} $friend
@@ -118,6 +118,6 @@ do
     ssh root@${srv} "iptables -A INPUT -j DROP"
     #ssh root@${srv} "iptables -A FORWARD -j DROP"
     ssh root@${srv} "iptables -L"
-​
+
     echo " "
 done
