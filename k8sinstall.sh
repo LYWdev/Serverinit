@@ -7,6 +7,18 @@ sudo apt-get install -y \
     gnupg \
     lsb-release
 
+#install k8s kubelet, kubeadm, kubectl
+sudo apt-get update
+sudo apt-get install -y kubelet 
+sudo apt-get install -y kubeadm
+sudo apt-get install -y kubectl
+sudo apt-get install -y ufw
+sudo apt-mark hold kubelet kubeadm kubectl
+
+#k8s service 등록
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
 # 2.Add Docker’s official GPG key:
 
 sudo mkdir -p /etc/apt/keyrings
@@ -59,17 +71,24 @@ sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://pack
 #add k8s repo
 echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
-#install k8s kubelet, kubeadm, kubectl
-sudo apt-get update
-sudo apt-get install -y kubelet 
-sudo apt-get install -y kubeadm
-sudo apt-get install -y kubectl
-sudo apt-mark hold kubelet kubeadm kubectl
-#k8s service 등록
-sudo systemctl daemon-reload
-sudo systemctl restart kubelet
-# Master(only)
-#kubeadm init
 
 # Pod network 애드온 설치 (master only)
 kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+
+sudo ufw allow 2379:2380/tcp
+sudo ufw allow 10250/tcp
+sudo ufw allow 10251/tcp
+sudo ufw allow 10252/tcp
+sudo ufw allow 10255/tcp
+sudo ufw allow 6443/tcp
+
+#firewall-cmd --permanent --add-port=2379-2380/tcp
+#firewall-cmd --permanent --add-port=10250/tcp
+#firewall-cmd --permanent --add-port=10251/tcp
+#firewall-cmd --permanent --add-port=10252/tcp
+#firewall-cmd --permanent --add-port=10255/tcp
+#firewall-cmd --permanent --add-port=10255/tcp
+#firewall-cmd --permanent --add-port=10251/tcp
+#firewall-cmd --add-port=6443/tcp --permanent
+#firewall-cmd --add-port=10250/tcp --permanent
+#firewall-cmd –reload
