@@ -21,6 +21,13 @@ sudo apt-get install -y ufw
 sudo apt-mark hold kubelet kubeadm kubectl
 
 
+#echo 'openssh'
+
+sudo system enable ssh
+sudo system start ssh
+
+sudo ufw status
+sudo ufw status
 echo 'ufw status activate'
 sudo ufw enable
 
