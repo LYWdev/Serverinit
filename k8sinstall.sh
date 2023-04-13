@@ -1,18 +1,10 @@
 #!/bin/bash
 # Update the apt package index and install packages to allow apt to use a repository over HTTPS:
-sudo apt-get update
-sudo apt-get install -y \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release
+
 
 #install k8s kubelet, kubeadm, kubectl
 sudo apt-get update
-sudo apt-get install -y kubelet 
-sudo apt-get install -y kubeadm
-sudo apt-get install -y kubectl
-sudo apt-get install -y ufw
+
 sudo apt-mark hold kubelet kubeadm kubectl
 
 #k8s service 등록
