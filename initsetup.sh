@@ -36,10 +36,17 @@ echo 'install docker'
 echo 'sudo apt-get install update'
 sudo apt-get install update 
 
-echo 'Remember to install 
--> RabbitMQ 
--> Unity Launcher Folders 
--> Linux Intel Graphics'
+#echo 'Remember to install 
+#-> RabbitMQ 
+#-> Unity Launcher Folders 
+#-> Linux Intel Graphics'
+
+sudo ufw allow 2379:2380/tcp
+sudo ufw allow 10250/tcp
+sudo ufw allow 10251/tcp
+sudo ufw allow 10252/tcp
+sudo ufw allow 10255/tcp
+sudo ufw allow 6443/tcp
 
 echo 'Screen Saver Off'
 gsettings set org.gnome.desktop.screensaver lock-enabled false
@@ -51,6 +58,6 @@ gsettings set org.gnome.desktop.screensaver lock-enabled false
 #systemctl status serial-getty@ttyS0.service
 
 #echo 'check status'
-sudo system status ufw
-sudo ufw status
 sudo ufw enable
+sudo ufw status
+sudo systemctl status ufw
