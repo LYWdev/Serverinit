@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #add repo
 sudo apt-get update
 sudo apt-get install -y ca-certificates
@@ -7,7 +6,9 @@ sudo apt-get install -y curl
 sudo apt-get install -y gnupg
 sudo apt-get install -y lsb-release
 
+#add gpgkey
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
 #add repo
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
