@@ -20,6 +20,7 @@ sudo apt-get install -y kubectl
 sudo apt-get install -y ufw
 #kvm
 sudo apt-get install -y cpu-checker
+sudo apt install tigervnc-standalone-server tigervnc-xorg-extension tigervnc-viewer
 
 #sudo apt-mark hold kubelet kubeadm kubectl
 

@@ -1,6 +1,5 @@
 #!/bin/bash
 #패키지 설치전 업데이트
-
 sudo apt-get update
 
 #필수 패키지 설치
@@ -11,12 +10,11 @@ sudo apt-get install -y \
     lsb-release
 
 sleep 1
-
 echo **********package installed**********
 
 #Repository 추가
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-​
+
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
@@ -79,6 +77,8 @@ echo **********k8s installed completed**********
 sudo mv /etc/containerd/config.toml /etc/containerd/config_origin.toml
 sudo systemctl restart containerd
 sudo kubeadm init
+
+sleep 1
 
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
