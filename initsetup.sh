@@ -18,7 +18,10 @@ sudo apt-get install -y kubelet
 sudo apt-get install -y kubeadm
 sudo apt-get install -y kubectl
 sudo apt-get install -y ufw
-sudo apt-mark hold kubelet kubeadm kubectl
+#kvm
+sudo apt-get install -y cpu-checker
+
+#sudo apt-mark hold kubelet kubeadm kubectl
 
 
 #echo 'openssh'
