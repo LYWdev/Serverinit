@@ -81,6 +81,9 @@ sudo systemctl restart containerd
 sleep 1
 echo **********systemctl restart containerd**********
 
+kubeadm join 192.168.122.212:6443 --token bbuara.mdn7w535r64coion \
+	--discovery-token-ca-cert-hash sha256:1b50d4be7af1a8d2c05e5939fd542c23d8b6464d48426f3b49d2693f5ea75426 
+
 #kata container 설치
 sudo apt update
 sudo apt install snapd
