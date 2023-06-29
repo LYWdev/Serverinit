@@ -81,9 +81,6 @@ sudo systemctl restart containerd
 sleep 1
 echo **********systemctl restart containerd**********
 
-kubeadm join 192.168.30.2:6443 --token hfvw2b.xh0hahx9cg4ibxpb \
-        --discovery-token-ca-cert-hash sha256:db8a95246d264c08e4d26d6c316ede22323c5678831eba39bbf8e952bd58eef3
-
 #kata container 설치
 sudo apt update
 sudo apt install snapd
@@ -125,7 +122,7 @@ version = 2
       [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
         BinaryName = ""
         CriuImagePath = ""
-        CriuPath = ""
+        CriuPath = "#"
         CriuWorkPath = ""
         IoGid = 0
         IoUid = 0
