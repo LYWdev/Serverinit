@@ -85,8 +85,9 @@ sudo systemctl restart containerd
 sleep 1
 echo **********systemctl restart containerd**********
 
-kubeadm join 192.168.122.212:6443 --token bbuara.mdn7w535r64coion \
-	--discovery-token-ca-cert-hash sha256:1b50d4be7af1a8d2c05e5939fd542c23d8b6464d48426f3b49d2693f5ea75426 
+##############################TOKEN#############################################################################3
+kubeadm join 192.168.122.234:6443 --token wkqwaq.5b0dnvvwqj4362vk \
+	--discovery-token-ca-cert-hash sha256:d5c09b1e566c5b4046b63016b393e5e554fb4873121088c64b4021b0f69669e6 
 
 #kata container 설치
 sudo apt update
