@@ -2,6 +2,8 @@
 
 ##sudo apt-get install upgrade 
 echo 'Installing ssh, vim, wget, zip, unzip, curl nettools'
+echo 'hello SHS'
+echo 'Installing ssh, vim, wget, zip, unzip, curl nettools'
 sudo apt-get install -y ssh
 sudo apt-get install -y vim
 sudo apt-get install -y wget
