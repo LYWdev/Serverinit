@@ -4,9 +4,9 @@ metadata:
   name: systester1
 spec:
   containers:
-  - name: gvisor
+  - name: systester1
     image: ubuntu:20.04
-    command: ["while true; do sleep 30; done;"]
+    command: 
     args:
     - apt update && apt upgrade -y && apt install -y git vim ssh gcc
     volumeMounts:
