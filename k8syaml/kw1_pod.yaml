@@ -10,7 +10,7 @@ spec:
     - /bin/bash
     - -c
     args:
-    - apt update && apt upgrade -y && apt install -y git vim ssh gcc
+    - apt update && apt upgrade -y && apt install -y git vim gcc
     volumeMounts:
     - name: ftrace
       mountPath: /data/shared
