@@ -6,11 +6,9 @@ spec:
   containers:
   - name: systester1
     image: ubuntu:20.04
-    command: 
-    - /bin/bash
-    - -c
+    command: ["/bin/bash", "-c"]
     args:
-    - apt update && apt upgrade -y && apt install -y git vim gcc
+    - apt update && apt -y upgrade && while true; do sleep 3600; done
     volumeMounts:
     - name: ftrace
       mountPath: /data/shared
