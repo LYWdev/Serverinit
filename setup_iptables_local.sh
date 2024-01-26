@@ -74,5 +74,50 @@ whitelist=(
 #for srv # if there is nothing after for var, bash assumes in \$@\
 #do
 
-        echo "Processing  $srv ..."
+	echo "Processing  $srv ..."
 
+    iptables -P INPUT ACCEPT
+    iptables -P FORWARD ACCEPT
+    iptables -F
+
+    # loop back
+    iptables -A INPUT -i lo -j ACCEPT
+    iptables -A OUTPUT -o lo -j ACCEPT
+
+    # dns traffic
+    iptables -A OUTPUT -p udp -o eth0 --dport 53 -j ACCEPT
+    iptables -A INPUT -p udp -i eth0 --sport 53 -j ACCEPT
+
+    # dhcp traffic
+    iptables -A OUTPUT -p udp -o eth0 --dport 67 -j ACCEPT
+    iptables -A INPUT -p udp -i eth0 --sport 67 -j ACCEPT
+
+    #  allow established and related incoming connection
+    iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+    iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
+    # allow http, https
+    iptables -A INPUT -p tcp -m multiport --dports 80,9898,443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+    iptables -A OUTPUT -p tcp -m multiport --dports 80,9898,443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+    iptables -A INPUT -p tcp -m multiport --dports 9898,443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+    iptables -A OUTPUT -p tcp -m multiport --dports 9898,443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
+    # allow ssh
+    iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+    iptables -A OUTPUT -p tcp --sport 22 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
+    # allow elasticsearch
+    #iptables -A INPUT -p tcp --dport 9200 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+    #iptables -A OUTPUT -p tcp --sport 9200 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
+    for friend in ${whitelist[@]}
+    do
+        echo "${srv} $friend"
+        iptables -A INPUT -s ${friend} -j ACCEPT
+        iptables -A FORWARD -s ${friend} -j ACCEPT
+    done
+    iptables -A INPUT -j DROP
+    #iptables -A FORWARD -j DROP
+    iptables -L
+
+#done

@@ -1,0 +1,31 @@
+#!/usr/bin/env bpftrace
+
+uprobe:/usr/local/bin/bash:open_shell_script
+{
+ @file=str(arg0);
+ @pid=pid;
+ printf("bash script \"%s\" started by %s\n", str(arg0), str(@pid));
+}
+
+uprobe:/usr/local/bin/bash:execute_command / pid == @pid /
+{
+ $comm = (struct command *)arg0;
+ $simplecomm = (struct simple_com *)$comm->value.Simple;
+ @current = $simplecomm->words;
+ $i = 0;
+ unroll (5) {
+   @args[$i] = @current->word->word;
+   @current = @current->next;
+   $i++;
+ }
+ $i = 0 ;
+ time("%H:%M:%S  ");
+ printf("%s:%d:", @file, $simplecomm->line);
+ unroll (5) {
+   if (@args[$i]!=0) {
+     printf(" %s", str(@args[$i]));
+   }
+   $i++;
+ }
+ system("echo \" (by $(id -ng %d))\"", uid);
+}
