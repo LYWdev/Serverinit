@@ -1,4 +1,4 @@
-#2024.1.22
+[200~#2024.1.22
 #설명
 #모든 프로세스에 대해서 uid, suid, euid의 변화를 감지하고 출력함
 #ver4는 euid == 0인 process에 대해서는 검사를 수행하지 않는 것으로 진행 예정
@@ -398,4 +398,309 @@ TRACEPOINT_PROBE(kmem, kmalloc) {
         lock_xadd(&val->count, 1);
         char name[TASK_COMM_LEN];
         bpf_get_current_comm(&name, sizeof(name));
-        bpf_probe_read_str((char *)val->task_name,sizeof(name)...
+        bpf_probe_read_str((char *)val->task_name,sizeof(name),name);
+        val->cpu_site = bpf_get_smp_processor_id();
+        if(val->last_time == 0)
+        {
+            val->last_time = bpf_ktime_get_ns();
+        }
+        /*
+        if(val->count > per_page_slab )
+        {
+            val->cur_time = bpf_ktime_get_ns();
+            val->time = val->cur_time - val->last_time;
+            if(val->time  > 0 && val->time  < 10000 * per_page_slab )
+            {
+                val->alert = 1;
+            }
+            val->prev_count = val->count;
+            val->count = 0;
+            val->last_time = 0;
+        }
+        
+        if(val->alert == 1)
+        {
+            val_dangerous = data_pid_kmalloc_dangerous.lookup_or_try_init(&val_pid_kmalloc_key,&zero_dangerous);
+            if(val_dangerous)
+            {
+                char name[TASK_COMM_LEN];
+                bpf_get_current_comm(&name, sizeof(name));
+                bpf_probe_read_str((char *)val_dangerous->task_name,sizeof(name),name);
+                //data_pid_kmalloc_dangerous.update(&val_pid_kmalloc_key,&name);
+                val_dangerous->count = val->prev_count;
+                val_dangerous->time = val->time;
+                val->alert = 0;
+            }
+        }
+        
+        val->ptr = (u64)(args->ptr);
+        val->call_site = args->call_site;
+        val->bytes_req = args->bytes_req;
+        val->bytes_alloc = args->bytes_alloc;
+        val->gfp_flags = args->gfp_flags;
+        //val->node = args->node;
+        //val->page_size = page_size;
+        */
+    }
+    return 0;
+}
+
+TRACEPOINT_PROBE(kmem, kmem_cache_alloc){
+
+    if(args->bytes_alloc < 32)
+    {
+        return 0;
+    }
+    u32 uid = (u32)bpf_get_current_uid_gid();
+    if(uid == 0)
+    {
+        return 0;
+    }
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 pid = pid_tgid >> 32;
+    u32 tid = (u32)pid_tgid;
+
+    struct pid_kmalloc_key  val_pid_kmalloc_key;  
+    struct kmem_alloc_data * val, zero = {};
+
+    val_pid_kmalloc_key.pid = pid;
+    val_pid_kmalloc_key.bytes_alloc = args->bytes_alloc;
+    val = data_pid_kmem_alloc.lookup_or_try_init(&val_pid_kmalloc_key, &zero);
+    if(val)
+    {
+        lock_xadd(&val->count, 1);
+        char name[TASK_COMM_LEN];
+        bpf_get_current_comm(&name, sizeof(name));
+        bpf_probe_read_str((char *)val->task_name,sizeof(name),name);
+        val->cpu_site = bpf_get_smp_processor_id();
+
+        val->ptr = (u64)(args->ptr);
+        val->call_site = args->call_site;
+        val->bytes_req = args->bytes_req;
+        val->bytes_alloc = args->bytes_alloc;
+        val->gfp_flags = args->gfp_flags;
+    }
+    return 0;
+}
+
+TRACEPOINT_PROBE(kmem, mm_page_alloc){
+
+    u32 uid = (u32)bpf_get_current_uid_gid();
+    if(uid == 0)
+    {
+        return 0;
+    }
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 pid = pid_tgid >> 32;
+    u32 tid = (u32)pid_tgid;
+
+    struct pid_page_order_key  val_pid_page_order_key;  
+    struct mm_page_alloc_data * val, zero = {};
+
+    val_pid_page_order_key.pid = pid;
+    val_pid_page_order_key.order = args->order;
+    val = data_pid_page_alloc.lookup_or_try_init(&val_pid_page_order_key, &zero);
+    if(val)
+    {
+        lock_xadd(&val->count, 1);
+        char name[TASK_COMM_LEN];
+        bpf_get_current_comm(&name, sizeof(name));
+        bpf_probe_read_str((char *)val->task_name,sizeof(name),name);
+        val->cpu_site = bpf_get_smp_processor_id();
+
+        val->pfn = args->pfn;
+        val->order = args->order;
+        val->gfp_flags = args->gfp_flags;
+    }
+    return 0;
+}
+
+TRACEPOINT_PROBE(kmem, kfree) {
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 pid = pid_tgid >> 32;
+    u32 tid = (u32)pid_tgid;
+
+    struct count_time * val, zero = {};
+    struct pid_syscall_key  val_pid_syscall_key;
+    return 0;
+}
+
+//아래는 kprobe함수로 진행
+
+//위험하다고 판단되었고 cred가 변경된 프로세스가 새로운 프로세스를 실행시킬때 감지하는 함수
+
+//위험하다고 판단되는 프로세스가 종료되어서 pid가 반환되었는지 확인하는 함수
+
+
+"""
+
+bpf = BPF(text=text)
+
+def comm_for_pid(pid):
+    try:
+        return open("/proc/%d/comm" % pid, "rb").read().strip()
+    except Exception:
+        return b"[unknown]"
+    
+def print_count_stats():
+    data = bpf["data_pid_syscall"]
+    
+    global print_type
+    global first_time
+    global is_print
+    if is_print == 0:
+        first_time = time.time()
+    cur_time = time.time() - first_time
+    #print(type(time.time()), type(first_time), cur_time)
+    for k, v in sorted(data.items(), key=lambda kv: -kv[1].count)[:args.top]:
+        process_name = comm_for_pid(k.pid).decode('utf-8')
+        if process_name == 'poc':
+            is_print = 1
+            write_data = [print_type, cur_time, k.pid, process_name, "%s" % syscall_name(k.syscall_number).decode('utf-8'), v.arg1, v.arg2, v.arg3, v.arg4, v.arg5, v.arg6,v.count]
+            writer.writerow(write_data)
+    if is_print == 1:
+        print_type += 1
+
+    for k, v in sorted(data.items(), key=lambda kv: -kv[1].count)[:args.top]:
+        process_name = comm_for_pid(k.pid).decode('utf-8')
+        print(k.pid)
+        if v.alert == 1:
+
+            is_print = 1
+            write_data = [print_type, cur_time, k.pid, process_name, "%s" % syscall_name(k.syscall_number).decode('utf-8'), v.arg1, v.arg2, v.arg3, v.arg4, v.arg5, v.arg6,v.count]
+            print(write_data)
+    if is_print == 1:
+        print_type += 1
+
+def print_kmalloc_stat():
+    data_kmalloc = bpf["data_pid_kmalloc"]
+    data_kmalloc_dangerous = bpf["data_pid_kmalloc_dangerous"]
+    data_kmem = bpf['data_pid_kmem_alloc']
+    data_page = bpf['data_pid_page_alloc']
+    is_alert = 0
+    global print_type
+    global first_time
+    global is_print
+    check = 0
+    if is_print == 0:
+        first_time = time.time()
+    cur_time = time.time() - first_time
+    #print(data_kmalloc.items())
+    """
+    for k, v in sorted(data_kmalloc_dangerous.items(), key=lambda kv: -kv[1].count):
+        process_name = comm_for_pid(k.pid).decode('utf-8')
+        #if process_name == 'kmalloc':
+        write_data = [k.pid,k.bytes_alloc, process_name,v.task_name,'kmalloc', v.count,v.time]
+        print(write_data)
+        is_alert = 1
+    if is_alert == 1:
+        data_kmalloc_dangerous.clear()
+    """
+    for k, v in sorted(data_kmalloc.items(), key=lambda kv: -kv[1].count):
+        process_name= (v.task_name).decode('utf-8')
+        if process_name == 'poc':
+            write_data = [print_type,k.pid, k.bytes_alloc,process_name, v.call_site, v.bytes_alloc, v.bytes_req, v.cpu_site,v.count, cur_time,'kmalloc' ]
+            print(write_data)
+            #writer.writerow(write_data)
+            is_print = 1
+            check = 1
+    #data_kmalloc.clear()
+
+    for k, v in sorted(data_kmem.items(), key=lambda kv: -kv[1].count):
+        process_name= (v.task_name).decode('utf-8')
+        if process_name == 'poc':
+            write_data = [print_type,k.pid, k.bytes_alloc,process_name,v.call_site, v.bytes_alloc, v.bytes_req,v.cpu_site, v.count, cur_time,'kmem_alloc' ]
+            #print(write_data)
+            print(write_data)
+            is_print = 1
+            check = 1
+    #data_kmem.clear()
+    for k, v in sorted(data_page.items(), key=lambda kv: -kv[1].count):
+        process_name= (v.task_name).decode('utf-8')
+        if process_name == 'poc':
+            write_data = [print_type,k.pid, k.order,process_name,v.pfn, v.order, v.gfp_flags, v.cpu_site, v.count, cur_time,'page_alloc' ]
+            #print(write_data)
+            print(write_data)
+            is_print = 1
+            check = 1
+    #data_page.clear()
+    if check == 1:
+        print_type += 1
+
+def print_cred_stat():
+    data_cred = bpf["data_pid_cred_data"]
+    data_cred_dangerous = bpf['data_pid_cred_data_dangerous']
+    data_cred_args_error_dangerous = bpf['data_pid_cred_args_error_dangerous']
+    is_alert = 0
+    global print_type
+    global first_time
+    global is_print
+    check = 0
+    if is_print == 0:
+        first_time = time.time()
+    cur_time = time.time() - first_time
+    #print(data_kmalloc.items())
+    """
+    for k, v in sorted(data_kmalloc_dangerous.items(), key=lambda kv: -kv[1].count):
+        process_name = comm_for_pid(k.pid).decode('utf-8')
+        #if process_name == 'kmalloc':
+        write_data = [k.pid,k.bytes_alloc, process_name,v.task_name,'kmalloc', v.count,v.time]
+        print(write_data)
+        is_alert = 1
+    if is_alert == 1:
+        data_kmalloc_dangerous.clear()
+    """
+    """
+    for k, v in data_cred.items():
+        process_name= (v.task_name).decode('utf-8')
+        #print(v.dangerous)
+        #if 'uid' in process_name:
+        if process_name == 'poc':
+            write_data = [print_type,k.pid, k.tid, k.syscall_number, syscall_name(k.syscall_number).decode('utf-8'),process_name,v.dangerous,v.prev_uid.val,v.uid.val,v.prev_suid.val, v.suid.val, v.prev_euid.val, v.euid.val ,v.chuid, v.chsuid, v.cheuid, cur_time,'cred' ]
+            print(write_data)
+            #writer.writerow(write_data)
+            is_print = 1
+            check = 1
+    """
+    #data_kmalloc.clear()
+    for k, v in data_cred_dangerous.items_lookup_and_delete_batch():
+        process_name= (v.task_name).decode('utf-8')
+        write_data = [print_type,k.pid, k.tid, syscall_name(v.syscall_number).decode('utf-8'),process_name,v.dangerous,v.prev_uid.val,v.uid.val,v.prev_suid.val, v.suid.val, v.prev_euid.val, v.euid.val ,v.chuid, v.chsuid, v.cheuid, cur_time,'cred' ]
+        print(write_data)
+        is_print = 1
+        check = 1
+        #print(k)
+        #data_cred_dangerous.items_lookup_and_delete_batch()
+    #data_kmalloc.clear()
+    for k, v in data_cred_args_error_dangerous.items_lookup_and_delete_batch():
+        write_data = [print_type,v.pid, v.tid, v.syscall_number_enter, v.syscall_number_exit, syscall_name(v.syscall_number_enter).decode('utf-8'), syscall_name(v.syscall_number_exit).decode('utf-8') ,'args error' ]
+        print(write_data)
+        is_print = 1
+        check = 1
+        #print(k)
+        #data_cred_dangerous.items_lookup_and_delete_batch()
+    """
+    if check == 1:
+        data_cred_dangerous.clear()
+    """
+    if check == 1:
+        print_type += 1
+#f = open('out.csv', 'w')
+#writer = csv.writer(f)
+
+print_type = 0
+is_print = 0
+first_time = 0
+exiting = 0
+print('start')
+while True:
+    try:
+        #print_count_stats()
+        print_cred_stat()
+    except KeyboardInterrupt:
+        exiting = 1
+        signal.signal(signal.SIGINT, signal_ignore)
+    if exiting:
+        #f.close()
+        print("Detaching...")
+        exit()
