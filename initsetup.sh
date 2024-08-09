@@ -4,6 +4,7 @@
 echo 'Installing ssh, vim, wget, zip, unzip, curl nettools'
 echo 'hello SHS'
 echo 'Installing ssh, vim, wget, zip, unzip, curl nettools'
+sudo apt-get install -y build-essential libncurses5 libncurses5-dev bin86 kernel-package libssl-dev bison flex libelf-dev
 sudo apt-get install -y openssh-server
 sudo apt-get install -y vim
 sudo apt-get install -y wget
@@ -20,6 +21,7 @@ sudo apt-get install -y kubelet
 sudo apt-get install -y kubeadm
 sudo apt-get install -y kubectl
 sudo apt-get install -y ufw
+
 #kvm
 sudo apt-get install -y cpu-checker
 sudo apt install tigervnc-standalone-server tigervnc-xorg-extension tigervnc-viewer
